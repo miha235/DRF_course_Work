@@ -1,5 +1,4 @@
 # habits/models.py
-from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db import models
 from .validators import (
@@ -30,11 +29,6 @@ class Habit(models.Model):
         return f"{self.action} в {self.time} в {self.place}"
 
     def clean(self):
-        # Валидация для duration: не менее 5 секунд
-        if self.duration < 5:
-            raise ValidationError('Длительность привычки должна быть не менее 5 секунд.')
-
-        # Вызов других валидаторов
         validate_related_habit(self)
         validate_habit_time(self)
         validate_habit_frequency(self)
@@ -42,7 +36,7 @@ class Habit(models.Model):
         validate_pleasant_habit(self)
 
     def save(self, *args, **kwargs):
-        self.clean()  # Вызываем clean перед сохранением
+        self.clean()
         super().save(*args, **kwargs)
 
     class Meta:
