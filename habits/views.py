@@ -1,3 +1,4 @@
+# habits/views.py
 from rest_framework import viewsets, permissions
 from rest_framework.pagination import PageNumberPagination
 from .models import Habit
@@ -20,15 +21,13 @@ class HabitViewSet(viewsets.ModelViewSet):
         if getattr(self, 'swagger_fake_view', False):
             # Возвращаем пустой queryset для генерации схемы
             return Habit.objects.none()
-        return Habit.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        return Habit.objects.select_related('user').filter(user=self.request.user)
 
     def perform_create(self, serializer):
         habit = serializer.save(user=self.request.user)
-        if habit.telegram_chat_id:
-            send_reminder(habit.telegram_chat_id, habit.action)
+        telegram_chat_id = habit.user.telegram_chat_id  # Получаем chat_id через пользователя
+        if telegram_chat_id:
+            send_reminder(telegram_chat_id, habit.action)
 
 
 class PublicHabitViewSet(viewsets.ReadOnlyModelViewSet):

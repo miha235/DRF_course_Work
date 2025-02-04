@@ -28,7 +28,8 @@ def home(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('habits.urls')),
+    path('api/habits/',include ( 'habits.urls' ) ),  # Префикс для приложения habits
+    path('api/users/',include ( 'users.urls' ) ),  # Префикс для приложения users
     path('', home, name='home'),  # Главная страница
     re_path(r'^swagger(?P<format>\.json|\.yaml)$',
             schema_view.without_ui(cache_timeout=0), name='schema-json'),

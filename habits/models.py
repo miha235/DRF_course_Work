@@ -1,3 +1,5 @@
+# habits/models.py
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.db import models
 from .validators import (
@@ -7,7 +9,6 @@ from .validators import (
     validate_habit_reward,
     validate_pleasant_habit
 )
-
 
 class Habit(models.Model):
     user = models.ForeignKey(
@@ -24,12 +25,16 @@ class Habit(models.Model):
     reward = models.CharField(max_length=255, blank=True)
     duration = models.PositiveIntegerField()  # в секундах
     is_public = models.BooleanField(default=False)
-    telegram_chat_id = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return f"{self.action} в {self.time} в {self.place}"
 
     def clean(self):
+        # Валидация для duration: не менее 5 секунд
+        if self.duration < 5:
+            raise ValidationError('Длительность привычки должна быть не менее 5 секунд.')
+
+        # Вызов других валидаторов
         validate_related_habit(self)
         validate_habit_time(self)
         validate_habit_frequency(self)
@@ -37,7 +42,7 @@ class Habit(models.Model):
         validate_pleasant_habit(self)
 
     def save(self, *args, **kwargs):
-        self.clean()
+        self.clean()  # Вызываем clean перед сохранением
         super().save(*args, **kwargs)
 
     class Meta:

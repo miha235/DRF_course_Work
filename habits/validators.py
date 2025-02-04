@@ -1,5 +1,7 @@
+# habits/validators.py
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from datetime import datetime
 
 
 def validate_related_habit(habit):
@@ -8,9 +10,14 @@ def validate_related_habit(habit):
 
 
 def validate_habit_time(habit):
-    if habit.duration is not None and habit.duration > 120:
-        raise ValidationError(
-            _('Время выполнения привычки не должно превышать 120 секунд.'))
+    if isinstance(habit.time, str):  # Преобразуем строку в time, если это строка
+        habit.time = datetime.strptime(habit.time, "%H:%M:%S").time()
+
+    total_seconds = habit.time.minute * 60 + habit.time.second
+    if total_seconds < 300:
+        raise ValidationError("Минимальное время должно быть 5 минут")
+
+
 
 
 def validate_habit_frequency(habit):
